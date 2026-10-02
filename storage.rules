@@ -1,0 +1,59 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.uid == "b2VxSCaUAkOO8g5UwSGIPtpzD4A2" ||
+        request.auth.uid == "uIk8z325rGNlW3gj9M422JVIPwj1" ||
+        (request.auth.token.email != null && (
+          request.auth.token.email == "mdsakoyatali0852369@gmail.com" ||
+          request.auth.token.email == "btsarmy@lovers.bd"
+        ))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidImage() {
+      return request.resource.size < 5 * 1024 * 1024 && // Max 5MB
+             request.resource.contentType.matches('image/(jpeg|png|webp|avif|gif)');
+    }
+
+    // Product Images: Public read, Admin write with image validation
+    match /products/{productId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImage();
+    }
+
+    // Category Images: Public read, Admin write
+    match /categories/{categoryId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImage();
+    }
+
+    // Promotional Banners: Public read, Admin write
+    match /banners/{bannerId}/{fileName} {
+      allow read: if true;
+      allow write: if isAdmin() && isValidImage();
+    }
+
+    // User Uploads: Public read, User write
+    match /users/{userId}/{fileName} {
+      allow read: if true;
+      allow write: if isOwner(userId) && isValidImage();
+    }
+
+    // Default deny catch-all
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

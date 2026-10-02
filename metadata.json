@@ -1,0 +1,6 @@
+{
+  "name": "BTS Army Shopping Website",
+  "description": "BTS Army official fashion & clothing e-commerce platform in Bangladesh. Premium apparel, trendy collections, cash on delivery, and fast delivery nationwide.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

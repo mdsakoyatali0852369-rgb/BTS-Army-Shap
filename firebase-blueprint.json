@@ -1,0 +1,259 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Clothing product entity with inventory variants and pricing",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 200 },
+        "slug": { "type": "string", "maxLength": 200 },
+        "sku": { "type": "string", "maxLength": 64 },
+        "description": { "type": "string", "maxLength": 5000 },
+        "shortDescription": { "type": "string", "maxLength": 1000 },
+        "category": { "type": "string", "maxLength": 100 },
+        "subcategory": { "type": "string", "maxLength": 100 },
+        "brand": { "type": "string", "maxLength": 100 },
+        "gender": { "type": "string", "maxLength": 50 },
+        "fabric": { "type": "string", "maxLength": 200 },
+        "images": { "type": "array" },
+        "thumbnail": { "type": "string", "maxLength": 1000 },
+        "price": { "type": "number" },
+        "salePrice": { "type": "number" },
+        "costPrice": { "type": "number" },
+        "sizes": { "type": "array" },
+        "colors": { "type": "array" },
+        "variants": { "type": "array" },
+        "totalStock": { "type": "number" },
+        "tags": { "type": "array" },
+        "featured": { "type": "boolean" },
+        "newArrival": { "type": "boolean" },
+        "bestSeller": { "type": "boolean" },
+        "active": { "type": "boolean" },
+        "seoTitle": { "type": "string", "maxLength": 150 },
+        "seoDescription": { "type": "string", "maxLength": 300 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "slug", "price", "active"]
+    },
+    "Category": {
+      "title": "Category",
+      "description": "Product category",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "description": { "type": "string", "maxLength": 1000 },
+        "image": { "type": "string", "maxLength": 1000 },
+        "active": { "type": "boolean" },
+        "sortOrder": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["name", "slug", "active"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "orderNumber": { "type": "string", "maxLength": 64 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customer": { "type": "object" },
+        "items": { "type": "array" },
+        "discount": { "type": "number" },
+        "couponCode": { "type": "string", "maxLength": 50 },
+        "deliveryCharge": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "paymentStatus": { "type": "string", "maxLength": 50 },
+        "orderStatus": { "type": "string", "maxLength": 50 },
+        "customerNote": { "type": "string", "maxLength": 1000 },
+        "adminNotes": { "type": "string", "maxLength": 1000 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["orderNumber", "customer", "items", "total", "orderStatus", "paymentMethod"]
+    },
+    "Customer": {
+      "title": "Customer",
+      "description": "Customer account details",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "displayName": { "type": "string", "maxLength": 150 },
+        "email": { "type": "string", "maxLength": 150 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "address": { "type": "string", "maxLength": 500 },
+        "totalOrders": { "type": "number" },
+        "totalSpent": { "type": "number" },
+        "status": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string" },
+        "lastLoginAt": { "type": "string" }
+      },
+      "required": ["uid"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer product review",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "productId": { "type": "string", "maxLength": 128 },
+        "productName": { "type": "string", "maxLength": 200 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 150 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 2000 },
+        "approved": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["productId", "customerId", "rating", "comment"]
+    },
+    "Coupon": {
+      "title": "Coupon",
+      "description": "Discount coupon promotion",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "code": { "type": "string", "maxLength": 50 },
+        "discountType": { "type": "string", "maxLength": 20 },
+        "discountAmount": { "type": "number" },
+        "minOrder": { "type": "number" },
+        "maxDiscount": { "type": "number" },
+        "expiryDate": { "type": "string", "maxLength": 50 },
+        "usageLimit": { "type": "number" },
+        "usedCount": { "type": "number" },
+        "active": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["code", "discountType", "discountAmount", "active"]
+    },
+    "DeliveryZone": {
+      "title": "DeliveryZone",
+      "description": "Shipping rate zone",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "charge": { "type": "number" },
+        "minOrderFree": { "type": "number" },
+        "active": { "type": "boolean" },
+        "isDefault": { "type": "boolean" }
+      },
+      "required": ["name", "charge", "active"]
+    },
+    "Banner": {
+      "title": "Banner",
+      "description": "Homepage promo banner",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "title": { "type": "string", "maxLength": 150 },
+        "subtitle": { "type": "string", "maxLength": 300 },
+        "image": { "type": "string", "maxLength": 1000 },
+        "buttonText": { "type": "string", "maxLength": 50 },
+        "buttonLink": { "type": "string", "maxLength": 200 },
+        "active": { "type": "boolean" },
+        "sortOrder": { "type": "number" }
+      },
+      "required": ["image", "active"]
+    },
+    "Page": {
+      "title": "Page",
+      "description": "Static content page",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "slug": { "type": "string", "maxLength": 100 },
+        "title": { "type": "string", "maxLength": 200 },
+        "content": { "type": "string", "maxLength": 20000 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["slug", "title", "content"]
+    },
+    "Setting": {
+      "title": "Setting",
+      "description": "Site global settings",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "maxLength": 150 },
+        "storeDescription": { "type": "string", "maxLength": 2000 },
+        "phone": { "type": "string", "maxLength": 50 },
+        "email": { "type": "string", "maxLength": 100 },
+        "address": { "type": "string", "maxLength": 300 },
+        "whatsapp": { "type": "string", "maxLength": 50 },
+        "facebook": { "type": "string", "maxLength": 300 },
+        "tiktok": { "type": "string", "maxLength": 300 },
+        "youtube": { "type": "string", "maxLength": 300 },
+        "currency": { "type": "string", "maxLength": 10 },
+        "announcement": { "type": "string", "maxLength": 500 },
+        "announcementActive": { "type": "boolean" }
+      }
+    },
+    "AuditLog": {
+      "title": "AuditLog",
+      "description": "Immutable administrative audit log trail",
+      "type": "object",
+      "properties": {
+        "adminUid": { "type": "string", "maxLength": 128 },
+        "adminEmail": { "type": "string", "maxLength": 150 },
+        "action": { "type": "string", "maxLength": 100 },
+        "target": { "type": "string", "maxLength": 100 },
+        "targetId": { "type": "string", "maxLength": 128 },
+        "timestamp": { "type": "string" },
+        "details": { "type": "object" },
+        "userAgent": { "type": "string", "maxLength": 200 }
+      },
+      "required": ["adminUid", "action", "target", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Public clothing catalog managed by admin"
+    },
+    "/categories/{categoryId}": {
+      "schema": "Category",
+      "description": "Product categories"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Orders placed by customers, read/write restricted to owner customer or admin"
+    },
+    "/customers/{customerId}": {
+      "schema": "Customer",
+      "description": "Customer profiles restricted to owner and admin"
+    },
+    "/reviews/{reviewId}": {
+      "schema": "Review",
+      "description": "Approved reviews public read; create by authenticated customers; moderation by admin"
+    },
+    "/coupons/{couponId}": {
+      "schema": "Coupon",
+      "description": "Promotional coupons read by customers, managed by admin"
+    },
+    "/deliveryZones/{zoneId}": {
+      "schema": "DeliveryZone",
+      "description": "Shipping charges public read, managed by admin"
+    },
+    "/banners/{bannerId}": {
+      "schema": "Banner",
+      "description": "Homepage banners public read, managed by admin"
+    },
+    "/pages/{pageId}": {
+      "schema": "Page",
+      "description": "Static pages public read, managed by admin"
+    },
+    "/settings/{settingId}": {
+      "schema": "Setting",
+      "description": "Global store settings public read, managed by admin"
+    },
+    "/auditLogs/{logId}": {
+      "schema": "AuditLog",
+      "description": "Immutable administrative audit trail"
+    }
+  }
+}

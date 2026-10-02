@@ -1,0 +1,191 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.uid == "b2VxSCaUAkOO8g5UwSGIPtpzD4A2" ||
+        request.auth.uid == "uIk8z325rGNlW3gj9M422JVIPwj1" ||
+        (request.auth.token.email != null && (
+          request.auth.token.email == "mdsakoyatali0852369@gmail.com" ||
+          request.auth.token.email == "btsarmy@lovers.bd"
+        )) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Products collection:
+    // Public read for customer catalog.
+    // Admin has full control.
+    // Customers can only atomically decrement stock and variants during checkout.
+    match /products/{productId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['totalStock', 'variants', 'updatedAt']) &&
+        request.resource.data.totalStock is number &&
+        request.resource.data.totalStock >= 0 &&
+        request.resource.data.totalStock <= resource.data.totalStock &&
+        request.resource.data.price == resource.data.price &&
+        (!('salePrice' in resource.data) || request.resource.data.salePrice == resource.data.salePrice) &&
+        request.resource.data.name == resource.data.name &&
+        request.resource.data.active == resource.data.active
+      );
+    }
+
+    // Categories: public read, admin write
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Orders:
+    // Customers can place orders (verified server-side / transactionally).
+    // Initial status must be Pending.
+    // Only admin or the customer owner can access the order details.
+    match /orders/{orderId} {
+      allow create: if (
+        request.resource.data.keys().hasAll(['orderNumber', 'customer', 'items', 'total', 'orderStatus', 'paymentMethod', 'paymentStatus', 'createdAt']) &&
+        request.resource.data.orderStatus == 'Pending' &&
+        request.resource.data.paymentStatus == 'Pending' &&
+        request.resource.data.total is number &&
+        request.resource.data.total >= 0 &&
+        request.resource.data.items is list &&
+        request.resource.data.items.size() > 0 &&
+        request.resource.data.items.size() <= 50 &&
+        request.resource.data.customer is map &&
+        request.resource.data.customer.fullName is string &&
+        request.resource.data.customer.fullName.size() > 0 &&
+        request.resource.data.customer.fullName.size() <= 120 &&
+        request.resource.data.customer.phone is string &&
+        request.resource.data.customer.phone.size() >= 10 &&
+        request.resource.data.customer.phone.size() <= 25 &&
+        request.resource.data.customer.address is string &&
+        request.resource.data.customer.address.size() > 0 &&
+        request.resource.data.customer.address.size() <= 500 &&
+        (
+          (!isSignedIn() && (!('customerId' in request.resource.data) || request.resource.data.customerId == null || request.resource.data.customerId == '')) ||
+          (isSignedIn() && request.resource.data.customerId == request.auth.uid) ||
+          isAdmin()
+        )
+      );
+
+      // Retrieval: Admin, owner customer, or guest holding the direct order confirmation ID
+      allow get: if isAdmin() || (
+        isSignedIn() && ('customerId' in resource.data) && resource.data.customerId == request.auth.uid
+      ) || (
+        (!('customerId' in resource.data) || resource.data.customerId == null || resource.data.customerId == '')
+      );
+
+      // Listing: ONLY admin or authenticated owner querying their own orders
+      allow list: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      );
+
+      // Modification & deletion: strictly admin only
+      allow update, delete: if isAdmin();
+    }
+
+    // Customers collection: owner can view, update safe profile fields; admin full access
+    match /customers/{customerId} {
+      allow get: if isOwner(customerId) || isAdmin();
+      allow list, delete: if isAdmin();
+      allow create: if isOwner(customerId) || isAdmin();
+      allow update: if isAdmin() || (
+        isOwner(customerId) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['displayName', 'phone', 'address', 'lastLoginAt', 'email']) &&
+        request.resource.data.uid == resource.data.uid
+      );
+    }
+
+    // Reviews:
+    // Anyone can read approved reviews, admin can read all.
+    // Customers can submit reviews with approved=false.
+    // Admin can moderate (approve/reject) and delete.
+    match /reviews/{reviewId} {
+      allow read: if (resource.data.approved == true) || isAdmin();
+      allow create: if isSignedIn() &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.approved == false &&
+        request.resource.data.rating is number &&
+        request.resource.data.rating >= 1 &&
+        request.resource.data.rating <= 5 &&
+        request.resource.data.comment is string &&
+        request.resource.data.comment.size() <= 2000;
+      allow update, delete: if isAdmin();
+    }
+
+    // Coupons:
+    // Anyone can read active coupons.
+    // Admin can create/update/delete.
+    // Customers can only atomically increment usedCount during purchase.
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin() || (
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['usedCount']) &&
+        request.resource.data.usedCount is number &&
+        request.resource.data.usedCount == resource.data.usedCount + 1 &&
+        request.resource.data.code == resource.data.code &&
+        request.resource.data.discountAmount == resource.data.discountAmount &&
+        request.resource.data.discountType == resource.data.discountType &&
+        request.resource.data.active == resource.data.active
+      );
+    }
+
+    // Delivery Zones: Public read, admin write
+    match /deliveryZones/{zoneId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Banners: Public read, admin write
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Static Pages: Public read, admin write
+    match /pages/{pageId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Settings: Public read, admin write
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admins registry: strictly admin only
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Audit Logs: Immutable log, admin read & create only
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin();
+      allow update, delete: if false;
+    }
+
+    // Test connection endpoint
+    match /test/{docId} {
+      allow read: if true;
+    }
+
+    // Default deny catch-all for any unmapped paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
